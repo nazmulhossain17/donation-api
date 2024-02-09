@@ -50,6 +50,27 @@ const getAllPosts = async (req, res) => {
       res.status(500).json({ error: 'Internal server error' });
     }
   };
+
+  const getPostById = async (req, res) => {
+    try {
+      const postId = req.params.id; // Assuming the post id is passed as a route parameter
+      const post = await prisma.post.findUnique({
+        where: { id: postId },
+        include: {
+          user: true, // Include user information in the response
+        },
+      });
+  
+      if (!post) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+  
+      res.status(200).json({ post });
+    } catch (error) {
+      console.error('Error fetching post by id:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
   
 
-module.exports = { createPost, getAllPosts };
+module.exports = { createPost, getAllPosts, getPostById };
