@@ -36,4 +36,20 @@ const createPost = async (req, res) => {
   }
 };
 
-module.exports = { createPost };
+const getAllPosts = async (req, res) => {
+    try {
+      const posts = await prisma.post.findMany({
+        include: {
+          user: true, // Include user information in the response
+        },
+      });
+  
+      res.status(200).json({ posts });
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+  
+
+module.exports = { createPost, getAllPosts };
