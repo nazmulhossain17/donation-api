@@ -2,21 +2,21 @@ const prisma = require("../../prisma");
 
 const createPost = async (req, res) => {
   try {
-    const { image, title, description, price, userId } = req.body;
+    const { image, title, description, price } = req.body;
 
     // Check if user with userId exists
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+    // const user = await prisma.user.findUnique({
+    //   where: { id: userId },
+    // });
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    // if (!user) {
+    //   return res.status(404).json({ error: 'User not found' });
+    // }
 
-    // Check if user has admin role
-    if (user.role !== 'admin') {
-      return res.status(403).json({ error: 'Permission denied. Only admins can create posts.' });
-    }
+    // // Check if user has admin role
+    // if (user.role !== 'admin') {
+    //   return res.status(403).json({ error: 'Permission denied. Only admins can create posts.' });
+    // }
 
     // Create post
     const newPost = await prisma.post.create({
@@ -25,7 +25,7 @@ const createPost = async (req, res) => {
         title,
         description,
         price,
-        userId,
+        
       },
     });
 
@@ -47,6 +47,23 @@ const getAllPosts = async (req, res) => {
       res.status(200).json({ posts });
     } catch (error) {
       console.error('Error fetching posts:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  const deletePost = async (req, res) => {
+    const { postId } = req.params;
+  
+    try {
+      const deletedPost = await prisma.post.delete({
+        where: {
+          id: postId,
+        },
+      });
+  
+      res.status(200).json({ message: 'Post deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting post:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   };
@@ -73,4 +90,4 @@ const getAllPosts = async (req, res) => {
   };
   
 
-module.exports = { createPost, getAllPosts, getPostById };
+module.exports = { createPost, getAllPosts, getPostById, deletePost };
