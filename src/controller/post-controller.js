@@ -47,7 +47,7 @@ const getAllPosts = async (req, res) => {
       res.status(200).json({ posts });
     } catch (error) {
       console.error('Error fetching posts:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({ error });
     }
   };
 
@@ -113,6 +113,68 @@ const getAllPosts = async (req, res) => {
       res.status(500).json({ error: 'Internal server error' });
     }
   };
+
+
+  const handleDonation = async (req, res) => {
+    const { postId, userId, amount } = req.body;
+  
+    try {
+      // Check if the user exists
+      const user = await prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+      });
+  
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+  
+      // Check if the post exists
+      const post = await prisma.post.findUnique({
+        where: {
+          id: postId,
+        },
+      });
+  
+      if (!post) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+  
+      // Update the donation amount
+      const updatedPost = await prisma.post.update({
+        where: {
+          id: postId,
+        },
+        data: {
+          amountRaised: post.amountRaised + amount, // Update the amountRaised field
+        },
+      });
+  
+      // Create a record of the donation
+      await prisma.userDonation.create({
+        data: {
+          user: {
+            connect: {
+              id: userId,
+            },
+          },
+          donation: {
+            connect: {
+              id: postId,
+            },
+          },
+          amount,
+        },
+      });
+  
+      res.status(200).json({ message: 'Donation successful', updatedPost });
+    } catch (error) {
+      console.error('Error during donation:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+  
   
 
-module.exports = { createPost, getAllPosts, getPostById, updatePost, deletePost };
+module.exports = { createPost, getAllPosts, handleDonation, getPostById, updatePost, deletePost };
