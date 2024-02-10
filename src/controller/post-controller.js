@@ -68,6 +68,31 @@ const getAllPosts = async (req, res) => {
     }
   };
 
+  const updatePost = async (req, res) => {
+    const { postId } = req.params;
+    const { image, title, description, price } = req.body;
+  
+    try {
+      const updatedPost = await prisma.post.update({
+        where: {
+          id: postId,
+        },
+        data: {
+          image,
+          title,
+          description,
+          price,
+          updatedAt: new Date(), // Update the 'updatedAt' field to the current timestamp
+        },
+      });
+  
+      res.status(200).json({ message: 'Post updated successfully', updatedPost });
+    } catch (error) {
+      console.error('Error updating post:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
   const getPostById = async (req, res) => {
     try {
       const postId = req.params.id; // Assuming the post id is passed as a route parameter
@@ -90,4 +115,4 @@ const getAllPosts = async (req, res) => {
   };
   
 
-module.exports = { createPost, getAllPosts, getPostById, deletePost };
+module.exports = { createPost, getAllPosts, getPostById, updatePost, deletePost };
