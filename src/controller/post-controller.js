@@ -35,6 +35,34 @@ const createPost = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+const donatePost = async (req, res) => {
+  try {
+    const { name, email, price } = req.body;
+    const newDonation = await prisma.donate.create({
+      data: {
+        name,
+        email,
+        price,
+        
+      },
+    });
+
+    res.status(201).json({ message: 'dontaion send successfully', post: newDonation });
+  } catch (error) {
+    console.error('Error creating post:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const getAllDonations = async (req, res) => {
+  try {
+    const allDonations = await prisma.donate.findMany();
+    res.status(200).json({ donations: allDonations });
+  } catch (error) {
+    console.error('Error retrieving donations:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 const getAllPosts = async (req, res) => {
     try {
@@ -51,6 +79,33 @@ const getAllPosts = async (req, res) => {
     }
   };
 
+
+  const deleteDonation = async (req, res) => {
+    const { donateId } = req.params;
+
+try {
+  const existingDonation = await prisma.donate.findUnique({
+    where: {
+      id: donateId,
+    },
+  });
+
+  if (!existingDonation) {
+    return res.status(404).json({ error: 'Donation not found' });
+  }
+
+  const deletedPost = await prisma.donate.delete({
+    where: {
+      id: donateId,
+    },
+  });
+
+  res.status(200).json({ message: 'Donation deleted successfully' });
+} catch (error) {
+  console.error('Error deleting donation:', error);
+  res.status(500).json({ error: 'Internal server error' });
+}
+  };
   const deletePost = async (req, res) => {
     const { postId } = req.params;
   
@@ -115,66 +170,66 @@ const getAllPosts = async (req, res) => {
   };
 
 
-  const handleDonation = async (req, res) => {
-    const { postId, userId, amount } = req.body;
+  // const handleDonation = async (req, res) => {
+  //   const { postId, userId, amount } = req.body;
   
-    try {
-      // Check if the user exists
-      const user = await prisma.user.findUnique({
-        where: {
-          id: userId,
-        },
-      });
+  //   try {
+  //     // Check if the user exists
+  //     const user = await prisma.user.findUnique({
+  //       where: {
+  //         id: userId,
+  //       },
+  //     });
   
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
+  //     if (!user) {
+  //       return res.status(404).json({ error: 'User not found' });
+  //     }
   
-      // Check if the post exists
-      const post = await prisma.post.findUnique({
-        where: {
-          id: postId,
-        },
-      });
+  //     // Check if the post exists
+  //     const post = await prisma.post.findUnique({
+  //       where: {
+  //         id: postId,
+  //       },
+  //     });
   
-      if (!post) {
-        return res.status(404).json({ error: 'Post not found' });
-      }
+  //     if (!post) {
+  //       return res.status(404).json({ error: 'Post not found' });
+  //     }
   
-      // Update the donation amount
-      const updatedPost = await prisma.post.update({
-        where: {
-          id: postId,
-        },
-        data: {
-          amountRaised: post.amountRaised + amount, // Update the amountRaised field
-        },
-      });
+  //     // Update the donation amount
+  //     const updatedPost = await prisma.post.update({
+  //       where: {
+  //         id: postId,
+  //       },
+  //       data: {
+  //         amountRaised: post.amountRaised + amount, // Update the amountRaised field
+  //       },
+  //     });
   
-      // Create a record of the donation
-      await prisma.userDonation.create({
-        data: {
-          user: {
-            connect: {
-              id: userId,
-            },
-          },
-          donation: {
-            connect: {
-              id: postId,
-            },
-          },
-          amount,
-        },
-      });
+  //     // Create a record of the donation
+  //     await prisma.userDonation.create({
+  //       data: {
+  //         user: {
+  //           connect: {
+  //             id: userId,
+  //           },
+  //         },
+  //         donation: {
+  //           connect: {
+  //             id: postId,
+  //           },
+  //         },
+  //         amount,
+  //       },
+  //     });
   
-      res.status(200).json({ message: 'Donation successful', updatedPost });
-    } catch (error) {
-      console.error('Error during donation:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  };
+  //     res.status(200).json({ message: 'Donation successful', updatedPost });
+  //   } catch (error) {
+  //     console.error('Error during donation:', error);
+  //     res.status(500).json({ error: 'Internal server error' });
+  //   }
+  // };
   
   
 
-module.exports = { createPost, getAllPosts, handleDonation, getPostById, updatePost, deletePost };
+module.exports = { createPost, getAllDonations, donatePost, deleteDonation, getAllPosts, getPostById, updatePost, deletePost };
